@@ -172,28 +172,17 @@ export declare class Settings extends Component {
  * The camera controller of the model viewer, it always looks at the target node while provides the rotating and scaling abilities on desktop and mobile
  * Can be accessed with `window.cameraController`
  */
-export declare class ObjectViewController extends Component {
-    /**
-     * Mouse wheel scrolling scale, could vary for different systems and devices
-     */
-    wheelScale: number;
-    /**
-     * Not used currently
-     */
-    moveSpeedShiftScale: number;
-    /**
-     * Not used currently
-     */
-    elastic: number;
+export declare class RodinController extends Component {
     /**
      * The damping factor for scaling and rotating, each time span will be divided by this factor
-     * The bigger it is, the slower the movement will be
+     * The smaller it is, the slower the movement will be
      */
     damping: number;
     /**
-     * The speed factor of rotating
+     * Speed factor of zooming
      */
-    rotateSpeed: number;
+    zoomSpeed: number;
+    mouse_constant: number;
     /**
      * The target node which the camera is looking at
      */
@@ -201,9 +190,38 @@ export declare class ObjectViewController extends Component {
     /**
      * The maximum distance of the object from the camera.
      */
-    maxDistance: number;
+    maxRadius: number;
     /**
      * The minimum distance of the object from the camera.
      */
-    minDistance: number;
+    minRadius: number;
+    private _minPolar;
+    private _maxPolar;
+    /**
+     * The minimum polar angle in degrees.
+     */
+    get minPolar(): number;
+    set minPolar(value: number);
+    /**
+     * The maximum polar angle in degrees.
+     */
+    get maxPolar(): number;
+    set maxPolar(value: number);
+    maxAzimuth: any;
+    minAzimuth: any;
+    /**
+     * The azimuthal angle in radians.
+     */
+    get azimuth(): any;
+    set azimuth(value: any);
+    /**
+     * The polar angle in radians, 0 is at the top.
+     */
+    get polar(): any;
+    set polar(e: any);
+    /**
+     * The distance from the camera to the target node.
+     */
+    get radius(): any;
+    set radius(value: any);
 }
