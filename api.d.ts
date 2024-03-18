@@ -85,10 +85,15 @@ export declare class RemoteLoader extends Component {
      * - pbr
      * - toon
      * - shaded
-     * - wireframe
+     * - blank
      * @param name name of the material
      */
     switchMaterial(name: string): void;
+    /**
+     * Enable quad wire frame rendering or not
+     * @param enabled
+     */
+    enableWireFrame(enabled: boolean): void;
     /**
      * Set line width of the toon material, only works when the current material is toon
      * @param width Width in points
@@ -99,7 +104,7 @@ export declare class RemoteLoader extends Component {
 /**
  * The settings of the model viewer, including
  * - Environment: Sky box or color background
- * - Materials: PBR, Toon, Shaded, Wireframe
+ * - Materials: PBR, Toon, Shaded, Blank
  * - PostProcesses: Bloom, Ambient Occlusion, Vignette
  * Can be accessed globally as `window.settings`
  */
