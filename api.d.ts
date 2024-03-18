@@ -240,4 +240,11 @@ export declare class RodinController extends Component {
      */
     get radius(): any;
     set radius(value: any);
+
+    /**
+     * Handle event outside of the canvas, it's listening window mousemove event.
+     * It can be called manually but the MouseEvent's clientX and clientY must be relative to the window (top-left) of the canvas.
+     * @param e MouseEvent
+     */
+    public windowMouseMove (e: MouseEvent): void;
 }
