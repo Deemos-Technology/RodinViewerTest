@@ -37,7 +37,6 @@ export interface RodinAsset {
     url: string;
     materials: RodinMaterial[];
 }
-
 /**
  * Handle remote loading of Rodin assets and material setups
  * Can be accessed globally as `window.remoteLoader`
@@ -56,7 +55,14 @@ export declare class RemoteLoader extends Component {
      * Indicates whether the loader is currently loading an asset
      */
     loading: boolean;
-
+    private _data;
+    private _loader;
+    private _model;
+    private _renderer;
+    private _wireFrame;
+    private _quadMesh;
+    private _mtlCtrls;
+    start(): void;
     reset(): void;
     /**
      * Load an GLTF asset from a remote URL
@@ -156,6 +162,11 @@ export declare class Settings extends Component {
      * @param color The `cc.Color` object, RGBA value is from 0 - 255
      */
     setColorBackground(color: Color): void;
+    /**
+     * Setup environment setups including sky box, ambient, shadows and post processes
+     * @param enabled 
+     */
+    setBlankScene (enabled: boolean): void;
     /**
      * Enable or disable the bloom post process
      * @param enabled
