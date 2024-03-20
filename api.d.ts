@@ -159,9 +159,9 @@ export declare class Settings extends Component {
     setEnvironment(): void;
     /**
      * Setup the background color e.g. `settings.setColorBackground(new cc.Color(r, g, b, a));`
-     * @param color The `cc.Color` object, RGBA value is from 0 - 255
+     * @param [color] The `cc.Color` object, RGBA value is from 0 - 255
      */
-    setColorBackground(color: Color): void;
+    setColorBackground(color?: Color): void;
     /**
      * Setup environment setups including sky box, ambient, shadows and post processes
      * @param enabled 
