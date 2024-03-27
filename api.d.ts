@@ -245,6 +245,12 @@ export declare class RodinController extends Component {
      * Handle event outside of the canvas, it's listening window mousemove event.
      * It can be called manually but the MouseEvent's clientX and clientY must be relative to the window (top-left) of the canvas.
      * @param e MouseEvent
+     * @param frame The frame element that the mouse event should be relative to, default is the canvas element
      */
     public windowMouseMove (e: MouseEvent): void;
+
+    /**
+     * End controlling the camera, if the mouse move event is listened in the outer window, this method should be called manually.
+     */
+    public onMouseUp (): void;
 }
