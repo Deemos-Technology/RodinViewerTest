@@ -47,6 +47,21 @@ export declare class RemoteLoader extends Component {
      */
     materials: Material[];
     /**
+     * The base color for the blank material
+     */
+    blankColor: Color;
+    /**
+     * The wire color for rendering the wire frame
+     */
+    wireColor: Color;
+    /**
+     * The depth bias for the wire frame material, it will affect wire's render quality.
+     * Smaller it is, the wire will be closer to the model, it might be less visible, but more accurate.
+     * Bigger it is, the wire will be closer to the camera, it might be more visible, but less accurate, user could see some back wires in some corner cases.
+     * The suggested value is from 0.001 to 0.00001
+     */
+    wireDepthBias: number;
+    /**
      * The host string to use for remote assets, if not provided in the asset
      * It will retrieve `host` from the url query string
      */
