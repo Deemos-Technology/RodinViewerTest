@@ -42,7 +42,11 @@
       <canvas id="GameCanvas" oncontextmenu="event.preventDefault()" tabindex="99"></canvas>
     </div>
   </div>
-  
+
+<script>
+  globalThis.PAGE_LOAD_TIME = performance.now();
+</script>
+
 <!-- Polyfills bundle. -->
 <script src="src/polyfills.bundle.js" charset="utf-8"> </script>
 
