@@ -7,6 +7,7 @@
 export interface RodinMaterialProperties {
     roughness: number;
     metallic: number;
+    albedoScale: Vec3;
 }
 /**
  * RodinMaterial including:
@@ -37,6 +38,7 @@ export interface RodinAsset {
     url: string;
     materials: RodinMaterial[];
 }
+
 /**
  * Handle remote loading of Rodin assets and material setups
  * Can be accessed globally as `window.remoteLoader`
@@ -49,18 +51,21 @@ export declare class RemoteLoader extends Component {
     /**
      * The base color for the blank material
      */
-    blankColor: Color;
+    get blankColor(): Color;
+    set blankColor(val: Color);
     /**
      * The wire color for rendering the wire frame
      */
-    wireColor: Color;
+    get wireColor(): Color;
+    set wireColor(val: Color);
     /**
      * The depth bias for the wire frame material, it will affect wire's render quality.
      * Smaller it is, the wire will be closer to the model, it might be less visible, but more accurate.
      * Bigger it is, the wire will be closer to the camera, it might be more visible, but less accurate, user could see some back wires in some corner cases.
      * The suggested value is from 0.001 to 0.00001
      */
-    wireDepthBias: number;
+    get wireDepthBias(): number;
+    set wireDepthBias(val: number);
     /**
      * The host string to use for remote assets, if not provided in the asset
      * It will retrieve `host` from the url query string
@@ -70,13 +75,7 @@ export declare class RemoteLoader extends Component {
      * Indicates whether the loader is currently loading an asset
      */
     loading: boolean;
-    private _data;
-    private _loader;
-    private _model;
-    private _renderer;
-    private _wireFrame;
-    private _quadMesh;
-    private _mtlCtrls;
+
     start(): void;
     reset(): void;
     /**
@@ -87,7 +86,7 @@ export declare class RemoteLoader extends Component {
      * @param mtlConfig Properties of the material in form of JS Object, e.g. { roughness: 0.5, metallic: 0.5 }
      * @returns Whether the request is proceeded or ignored
      */
-    loadGLTF(url: string, name: string, cb: (node: Node, renderer: MeshRenderer, backColor?: Color, edgeColor?: Color) => void, mtlConfig?: any): boolean;
+    loadGLTF(url: string, name: string, cb: (node: Node, loadedRenderer: LoadedRenderer, backColor?: Color, edgeColor?: Color) => void, mtlConfig?: any): boolean;
     /**
      * Load a Rodin asset with RodinAsset description
      * @param asset The `RodinAsset` info object
@@ -120,8 +119,53 @@ export declare class RemoteLoader extends Component {
      * @param width Width in points
      */
     setLineWidth(width: number): void;
+    private genAlternativeMeshes;
 }
 
+/**
+ * API interface for Bloom component in post process.
+ * Could be used for `settings.bloom`
+ */
+export interface IBloom extends Component {
+    /**
+     * Enable or disable the bloom effect
+     */
+    enabled: boolean;
+    /**
+     * The intensity of the bloom effect
+     */
+    intensity: number;
+    /**
+     * The highlight threshold to enabling the bloom effect
+     */
+    threshold: number;
+    /**
+     * Iteration count for the bloom effect, should be 1 ~ 3
+     */
+    iterations: number;
+}
+/**
+ * API interface for Ambient Occlusion component in post process
+ * Could be used for `settings.ao`
+ */
+export interface IAmbientOcclusion extends Component {
+    /**
+     * Enable or disable the ambient occlusion effect
+     */
+    enabled: boolean;
+    /**
+     * The radius of the occluded area
+     */
+    radiusScale: number;
+    /**
+     * The color saturation of the occluded area
+     */
+    aoSaturation: number;
+    /**
+     * Whether the edge of the ambient occlusion should be blurred
+     */
+    needBlur: boolean;
+}
 /**
  * The settings of the model viewer, including
  * - Environment: Sky box or color background
@@ -129,7 +173,25 @@ export declare class RemoteLoader extends Component {
  * - PostProcesses: Bloom, Ambient Occlusion, Vignette
  * Can be accessed globally as `window.settings`
  */
-export declare class Settings extends Component {
+export declare class Settings {
+    static instance: Settings;
+    /**
+     * The time records for the loading process
+     */
+    timeRecords: {
+        INIT_PREVIEW: number;
+        PAGE_LOAD: number;
+        SCRIPT_LOAD: number;
+        ENGINE_INIT: number;
+        SCENE_LOAD: number;
+        MODEL_REQUEST: number;
+        MODEL_DOWNLOAD: number;
+        MODEL_PARSE: number;
+        MATERIAL_INIT: number;
+        MESH_GENERATE: number;
+        MODEL_LOAD_FINISH: number;
+        FRAME_RENDER: number;
+    };
     /**
      * The remote loader to load Rodin assets, same object as `window.remoteLoader`
      */
@@ -139,26 +201,74 @@ export declare class Settings extends Component {
      */
     postProcess: Node;
     /**
+     * The sphere renderer wrapping model object for controlling the background color
+     * Use `setColorBackground(color: Color)` will be easier
+     */
+    camera: Camera;
+    /**
      * The light node to control the light direction
      */
     light: Node;
     /**
-     * The sphere renderer wrapping model object for controlling the background color
-     * Use `setColorBackground(color: Color)` will be easier
+     * The bloom component of the post process
      */
-    sphere: MeshRenderer;
+    bloom: IBloom;
     /**
-     * The json asset containing the Rodin assets preset
-     * No need to use it for remote assets
+     * The ambient occlusion component of the post process
      */
-    assets: JsonAsset;
+    ao: IAmbientOcclusion;
+    /**
+     * The light direction in Euler angles
+     * @readonly
+     */
+    get lightDirection(): Vec3;
+    /**
+     * The background color of the blank scene
+     * @readonly
+     */
+    get backColor(): Color;
+    /**
+     * Whether the bloom post effect is enabled
+     * @readonly
+     */
+    get bloomEnabled(): boolean;
+    /**
+     * Whether the ambient occlusion post effect is enabled
+     * @readonly
+     */
+    get aoEnabled(): boolean;
+    /**
+     * Whether the vignette post effect is enabled
+     * @readonly
+     */
+    get vignetteEnabled(): boolean;
+
+    init(loader: RemoteLoader, postProcess: Node, camera: Camera, light?: Node, canvas?: Node, menuPrefab?: string): void;
+    /**
+     * To pass the preview page request time to the settings.timeRecords.
+     * @param initTimeInMS The time when the preview page is initialized in the outer window, measured in milliseconds.
+     */
+    recordInitTime(initTimeInMS: number): void;
+    /**
+     * Log the time records in the console
+     */
+    logTimeRecords(): void;
+    /**
+     * Enable or disable the settings menu UI, disabled by default
+     * @param enabled
+     */
+    enableMenu(enabled: boolean): void;
     /**
      * Load `RodinAsset`.
-     * The difference with `remoteLoader.loadRodinAsset` is that it will also update the settings menu and setup the background color if available in the GLTF extension
-     * @param asset
+     * The difference with `remoteLoader.loadRodinAsset` is the following
+     * 1. Switch the model's material to blank material
+     * 2. Update the environment settings for blank material
+     * 3. Setup the background color if available in the GLTF extension
+     * @param asset The rodin asset to be loaded
+     * @param cb The callback invoked after the asset is loaded, can be used to do extra setup
      * @returns Whether the request is proceeded or ignored
      */
-    loadRodinAsset(asset: RodinAsset): boolean;
+    loadRodinAsset(asset: RodinAsset, cb?: (node: Node, renderer: MeshRenderer, backColor?: Color, edgeColor?: Color) => void): boolean;
     /**
      * Set angles of directional light, suggested range
      * - x: -180 ~ 0
@@ -168,20 +278,19 @@ export declare class Settings extends Component {
      */
     setLightDirection(eulerAngles: Vec3): void;
     /**
-     * Activate the sky box
-     * Currently no sky box is loaded so please don't use it
-     */
-    setEnvironment(): void;
-    /**
      * Setup the background color e.g. `settings.setColorBackground(new cc.Color(r, g, b, a));`
      * @param [color] The `cc.Color` object, RGBA value is from 0 - 255
      */
     setColorBackground(color?: Color): void;
     /**
-     * Setup environment setups including sky box, ambient, shadows and post processes
-     * @param enabled 
+     * Activate the sky box
      */
-    setBlankScene (enabled: boolean): void;
+    setEnvironment(): void;
+    /**
+     * Setup environment setups including sky box, ambient, shadows and post processes for blank material
+     * @param enabled
+     */
+    setBlankScene(enabled: boolean): void;
     /**
      * Enable or disable the bloom post process
      * @param enabled
@@ -197,6 +306,20 @@ export declare class Settings extends Component {
      * @param enabled
      */
     enableVignette(enabled: boolean): void;
+    private loadSample;
+}
+/**
+ * The settings menu of the model viewer, including setup UI for
+ * - Environment: Sky box or color background
+ * - Materials: PBR, Toon, Shaded, Blank
+ * - PostProcesses: Bloom, Ambient Occlusion, Vignette
+ */
+export declare class SettingsMenu extends Component {
+    /**
+     * The json asset containing the Rodin assets preset
+     * No need to use it for remote assets
+     */
+    assets: JsonAsset;
 }
 
 /**
