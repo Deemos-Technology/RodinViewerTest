@@ -380,6 +380,12 @@ export declare class RodinController extends Component {
     set radius(value: any);
 
     /**
+     * The click callback function, it will be called when the mouse is clicked
+     * Click is detected if the mouse is pressed and released at the same location
+     */
+    public clickCallback: (e: EventMouse) => void
+
+    /**
      * Handle event outside of the canvas, it's listening window mousemove event.
      * It can be called manually but the MouseEvent's clientX and clientY must be relative to the window (top-left) of the canvas.
      * @param e MouseEvent
